@@ -1,0 +1,9 @@
+{
+	"address": {
+		"server": "localhost",
+		"port": 7000,
+		"database": "boo-db",
+		"collection": "boo-sandbox",
+		"events": "boo-events"
+	}
+}

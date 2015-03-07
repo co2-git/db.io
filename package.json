@@ -1,0 +1,42 @@
+{
+  "name": "boo",
+  "version": "0.0.1",
+  "description": "boo is a database written in JavaScript with the following features: - memory database - tcp socket server - event-driven (all clients get notified in real time of any watched events)",
+  "main": "index.js",
+  "dependencies": {
+    "colors": "~1.0.3"
+  },
+  "bin": {
+    "boojs": "bin/boo.js"
+  },
+  "devDependencies": {
+    "mocha": "~2.0.1",
+    "should": "~4.3.1"
+  },
+  "scripts": {
+    "test": "mocha --check-leaks -R nyan",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/co2-git/boojs.git"
+  },
+  "keywords": [
+    "javascript",
+    "js",
+    "database",
+    "db",
+    "ram",
+    "memory",
+    "event",
+    "socket"
+  ],
+  "author": "co2-git",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/co2-git/boojs/issues"
+  },
+  "bin": {
+    "boojs": "bin/boo.js"
+  }
+}
