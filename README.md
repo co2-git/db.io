@@ -1,7 +1,6 @@
 db.io `alpha`
 ============
 
-
 db.io is a database written in JavaScript with the following features:
 
 - memory database
@@ -17,26 +16,57 @@ npm install co2-git/db.io
 # Usage
 
 ```js
-
 var db = require('db.io');
+```
 
 # Connect
 
+`db.io`'s server is a service listening on a port.
+
+Contrary to other databases, you don't need to start the server. It will start by itself on the first query it receives from a client.
+
+These are the informations needed by a client to connect to a server:
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| Server | String | The server domain name or IP address | `"localhost"` |
+| Port | Number | The server port number | `7000` |
+| Database | String | The database name | `"test"` |
+| Collection | String | The collection name | `"test"` |
+
+```js
 // Create new client on collection "players"
 
 client = db.client({ collection: 'players' });
+```
 
+## Insert
+
+```js
 // Create a new document
 
-client.insert({ name: "Toni", score: 100, team: "red" });
+client.insert({
+  "name":     "Toni",
+  "score":    100,
+  "active":   false,
+  "regex":    /.+/,
+  "class":
+});
 
 // Update (increment Toni's score by 100)
 
-client.update({ name: "Toni", $inc: { score: 100 } });
+client
+  
+  .find({ "name": "Toni" })
+  
+  .update(function (player) {
+    player.score += 100;
+    return player;
+  });
 
-// Find Toni
+// Find Tonis whose score is above 200
 
-client.find({ name: "Toni" });
+client.find({ "name":     "Toni" });
 
 // Increment each team red's players every time they have a new member
 
@@ -74,7 +104,7 @@ client.on('inserted', function (players) {
     
 Default address is:
 
-    dbio://localhost:7000/boo-db/boo-sandbox
+    dbio://localhost:7000/test/test
 
 # Server
 
