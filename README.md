@@ -1,11 +1,15 @@
 db.io `alpha`
 ============
 
-db.io is a database written in JavaScript with the following features:
+`db.io` is a database written in JavaScript with the following features:
 
-- memory database
-- tcp socket server
-- event-driven (all clients get notified in real time of any watched events)
+- Memory database (data is stored in RAM)
+- TCP socket server
+- Event-driven (all clients get notified in real time of any watched events)
+
+What it does not have:
+
+- Indexes
 
 # Install
 
@@ -34,39 +38,32 @@ These are the informations needed by a client to connect to a server:
 | Database | String | The database name | `"test"` |
 | Collection | String | The collection name | `"test"` |
 
+You can overwrite the default values passing a list of the properties you want to modify to the client. If for example you want to switch collection:
+
 ```js
 // Create new client on collection "players"
 
-client = db.client({ collection: 'players' });
+client = db.client({ "collection": "players" });
 ```
 
 ## Insert
 
 ```js
-// Create a new document
 
-client.insert({
-  "name":     "Toni",
-  "score":    100,
-  "active":   false,
-  "regex":    /.+/,
-  "class":
-});
+client.insert({ "name": "Toni", "score": 100 });
 
 // Update (increment Toni's score by 100)
 
 client
   
-  .find({ "name": "Toni" })
-  
-  .update(function (player) {
+  .update({ "name": "Toni" }, function (player) {
     player.score += 100;
     return player;
   });
 
 // Find Tonis whose score is above 200
 
-client.find({ "name":     "Toni" });
+client.find({ "name": "Toni" });
 
 // Increment each team red's players every time they have a new member
 
