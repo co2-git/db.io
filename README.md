@@ -1,6 +1,8 @@
 db.io `alpha`
 ============
 
+# Minimalistic database service
+
 `db.io` is a server/client database written in JavaScript with the following features:
 
 - Memory database (data is stored in RAM)
