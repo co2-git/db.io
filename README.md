@@ -13,6 +13,29 @@ db.io `alpha`
 
 `db.io` is the on-the-go solution to create a database server. The database server uses TCP sockets and data is stored in the RAM as JSON. A client is provided to execute CRUD queries. The database server is emitting events so a client get be used as a listener.
 
+# Usage
+
+```bash
+npm install db.io
+```
+
+```js
+var dbio = require('db.io');
+
+var client = dbio.client();
+
+client.forEach('#players', { "name": "John" }, { "limit": 1 });
+
+client.push('#players', { "name": "Mari" });
+
+client.map('#players', { "name": "Mari" }, { "name": "Mary" }, { "limit": 1 });
+
+client.pull('#players', { "name": "Mary" });
+
+client.on.pull('#players', function (Mary) {});
+
+```
+
 # Use case
 
 You can use `db.io` to easily share data between various threads. Each thread can execute queries and listen to other queries executed by other clients in realtime. Various user cases may be:
