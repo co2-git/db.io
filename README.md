@@ -24,242 +24,75 @@ var dbio = require('db.io');
 
 var client = dbio.client();
 
-client.forEach('#players', { "name": "John" }, { "limit": 1 });
+// Get all players
 
-client.push('#players', { "name": "Mari" });
-
-client.map('#players', { "name": "Mari" }, { "name": "Mary" }, { "limit": 1 });
-
-client.pull('#players', { "name": "Mary" });
-
-client.on.pull('#players', function (Mary) {});
-
-```
-
-# Use case
-
-You can use `db.io` to easily share data between various threads. Each thread can execute queries and listen to other queries executed by other clients in realtime. Various user cases may be:
-
-## Cache
-
-Use `db.io` as a shared cache bewteen clients.
-
-## Notify-on-the-network messaging
-
-Since clients can listen to any change on the data, this can be used as a pub/sub system as well for clients to receive messages.
-
-# Database design
-
-There is no ACID compliancy or other database-specific design.
-
-# Structure
-
-Data storage is divided into channels. A client must specified the channel it wants to communicate with or it will be connected to the "test" channel by default.
-
-# Data type
-
-Data is saved via `JSON.stringify()` so for example functions would not get saved. It has to be strict, non-circular JSON:
-
-```js
-var client = require('db.io').client("/foo");
-
-client
-  
-  .push({
-    "foo": 1,
-    "bar": function () {}
-  })
-  
-  .pushed(function (document) {
-    console.log(document.foo); // 1
-    console.log(document.bar); // undefined ("bar" did not get saved because it is a function)
-  });
-```
-
-# Actions and events
-
-Each action emits a success event once done - or an error event if something erred. The actions are:
-
-- `client("foo").push(JSON)` Push a new JSON to channel #foo
-- `client("foo").pull()` Get channel #foo
-
-Update and remove queries are performed via the `.save()` method:
-
-```js
-client("foo")
-  // get foos
-  .pull()
-  // change some foos
-  .map(function (foo) {
-    if ( foo.bar === 'barz' ) {
-      foo.barz = false;
-    }
-    
-    return foo;
-  })
-  // save changes
-  .push();
-```
-
-# Indexing
-
-There is **no indexing** and **no unique id keys**.
-
-# Install
-
-```bash
-npm install co2-git/db.io
-```
-
-# Usage
-
-```js
-var db = require('db.io');
-```
-
-# Connect
-
-`db.io`'s server is a service listening on a port.
-
-Contrary to other databases, you don't need to start the server. It will start by itself on the first query it receives from a client.
-
-These are the informations needed by a client to connect to a server:
-
-| Property | Type | Description | Default |
-|----------|------|-------------|---------|
-| Server | String | The server domain name or IP address | `"localhost"` |
-| Port | Number | The server port number | `7000` |
-| Database | String | The database name | `"test"` |
-
-You can overwrite the default values passing a list of the properties you want to modify to the client. If for example you want to switch collection:
-
-```js
-// Create new client on collection "players"
-
-client = db.client({ "collection": "players" });
-```
-
-## Insert
-
-```js
-
-client.insert({ "name": "Toni", "score": 100 });
-
-// Update (increment Toni's score by 100)
-
-client
-  
-  .update({ "name": "Toni" }, function (player) {
-    player.score += 100;
-    return player;
-  });
-
-// Find Tonis whose score is above 200
-
-client.find({ "name": "Toni" });
-
-// Increment each team red's players every time they have a new member
-
-client.on('inserted', function (players) {
-
-  // Find out how many of the new players are from team red
-  
-  var newMembers = players
-    
-    .filter(function (player) {
-      return player.team === 'red';
-    })
-    
-    .map(function (player) {
-      return { $id: player.$id };
-    });
-  
-  // Update each player of team red, except new ones
-  
-  if ( newMembers.length ) {
-    client.update('players', {
-      team: 'red',
-      $id: { $not: newMembers },
-      $inc: { score: ( 100 * newMembers.length ) } }); 
-  }
+client.toArray('players', function (error, players) {
+  console.log(players);
 });
 
-```
+// Insert player
 
-# Connexion
+client
+  .push('players', { 'name': 'Toni' },
+    function (error, player) {
+      
+      console.log(player);
+      
+      // { '_id': 1, 'name': 'Toni', '_created': Date }
+    }
+  );
 
-`db.io` uses a URL format to identify connexions:
+// Get last player which name is Toni
 
-    dbio://<server>(:<port>)(/dbname(/collectionName))
+client
+  .toArray('players',
     
-Default address is:
+    {
+      'limit':      1,
+      'reverse':    true,
+      'filter':     function (player) {
+        return player.name === 'Toni';
+      }
+    },
+    
+    function (error, players) {
+      //...
+    }
+  );
+  
+// Update player
 
-    dbio://localhost:7000/test/test
+client
+  .map('players',
+  
+    {
+      'filter': function (player) {
+        return player.name === 'Toni';;
+      }
+    },
+    
+    function (player) {
+      player.score += 100;
+      return player;
+    },
+    
+    function (error, players) {
+      //...
+    }
+  );
 
-# Server
+// Remove Toni if his score is below 1000
 
-boo server starts automatically when a client requires it.
+client.pull('players',
 
-```js
-boo.client(); // will use default address
-boo.client('dbio://app.com:9009'); // specify a diffent host and port
-boo.client('test'); // will use default address but with "test" as database
-boo.client('test/running'); // will use default address but with "test" as database and "running" as collection
-boo.client(9876); // will use default address but with 9876 as port
-boo.client({ host: 'app.com', port: 9009, database: 'test', collection: 'users'); // Use object for finer control
+  {
+    'filter': function (player) {
+      return player.name === 'Toni' && player.score < 1000;
+    }
+  },
+  
+  function (error, players) {
+    //...
+  }
+);
 ```
-
-# Client
-
-You can use boo module to statically create a new client, or called the Client library directly:
-
-```js
-var client = db.client();
-
-// is the same than
-
-var client = new (require('db.io/lib/class/Client'))();
-```
-
-# Query
-
-Special queries are prefixed by a dollar sign `$` and injected into the regular query:
-
-```js
-// name is Joe and score is greater than 100
-
-client.find({ name: 'Joe', score: function (score) {
-  return score > 100;
-}});
-```
-
-# Query filters
-
-## Literal match
-
-Any value other than 
-
-```js
-// name is Joe
-client.find({ name: 'Joe' }); 
-
-// score is 100
-client.find({ score: 100 });
-```
-
-## Advanced query
-
-A more advanced query can be passed via functions.
-
-Can you guess what this query is doing?
-
-```js
-client.find({
-  name: 
-})
-```
-
-# Test
-
-Tests are written in Mocha and shouldjs.
-
