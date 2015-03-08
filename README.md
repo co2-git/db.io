@@ -1,15 +1,45 @@
 db.io `alpha`
 ============
 
-`db.io` is a database written in JavaScript with the following features:
+`db.io` is a server/client database written in JavaScript with the following features:
 
 - Memory database (data is stored in RAM)
-- TCP socket server
+- TCP socket server (fast socket connexion)
 - Event-driven (all clients get notified in real time of any watched events)
 
-What it does not have:
+# About
 
-- Indexes
+`db.io` is the on-the-go solution to create a database server. The database server uses TCP sockets and data is stored in the RAM as JSON and is cataloged under a database/collection structure. A client is provided to execute CRUD queries. The database server is emitting events so a client get be used as a listener.
+
+# Use case
+
+You can use `db.io` to easily share data between various threads. Each thread can execute queries and listen to other queries executed by other clients in realtime.
+
+# Database design
+
+Since this is very prototype-ish, data is stored in RAM as JSON objects. See it as a bucket of data. There is no ACID compliancy or other database-specific design.
+
+# Data type
+
+Data is saved via `JSON.stringify` so for example functions would not get saved. It has to be strict JSON:
+
+```js
+var client = require('db.io').client({ "bucket": "foo" });
+
+client
+  .push({
+    "foo": 1,
+    "bar": function () {}
+  })
+  .pushed(function (document) {
+    console.log(document.foo); // 1
+    console.log(document.bar); // undefined ("bar" did not get saved because it is a function)
+  });
+```
+
+# Indexing
+
+Also there is **no indexing** and **no unique id keys**.
 
 # Install
 
