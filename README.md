@@ -11,37 +11,76 @@ db.io `alpha`
 
 # About
 
-`db.io` is the on-the-go solution to create a database server. The database server uses TCP sockets and data is stored in the RAM as JSON and is cataloged under a database/collection structure. A client is provided to execute CRUD queries. The database server is emitting events so a client get be used as a listener.
+`db.io` is the on-the-go solution to create a database server. The database server uses TCP sockets and data is stored in the RAM as JSON. A client is provided to execute CRUD queries. The database server is emitting events so a client get be used as a listener.
 
 # Use case
 
-You can use `db.io` to easily share data between various threads. Each thread can execute queries and listen to other queries executed by other clients in realtime.
+You can use `db.io` to easily share data between various threads. Each thread can execute queries and listen to other queries executed by other clients in realtime. Various user cases may be:
+
+## Cache
+
+Use `db.io` as a shared cache bewteen clients.
+
+## Notify-on-the-network messaging
+
+Since clients can listen to any change on the data, this can be used as a pub/sub system as well for clients to receive messages.
 
 # Database design
 
-Since this is very prototype-ish, data is stored in RAM as JSON objects. See it as a bucket of data. There is no ACID compliancy or other database-specific design.
+There is no ACID compliancy or other database-specific design.
+
+# Structure
+
+Data storage is divided into channels. A client must specified the channel it wants to communicate with or it will be connected to the "test" channel by default.
 
 # Data type
 
-Data is saved via `JSON.stringify` so for example functions would not get saved. It has to be strict JSON:
+Data is saved via `JSON.stringify()` so for example functions would not get saved. It has to be strict, non-circular JSON:
 
 ```js
-var client = require('db.io').client({ "bucket": "foo" });
+var client = require('db.io').client("/foo");
 
 client
+  
   .push({
     "foo": 1,
     "bar": function () {}
   })
+  
   .pushed(function (document) {
     console.log(document.foo); // 1
     console.log(document.bar); // undefined ("bar" did not get saved because it is a function)
   });
 ```
 
+# Actions and events
+
+Each action emits a success event once done - or an error event if something erred. The actions are:
+
+- `client("foo").push(JSON)` Push a new JSON to channel #foo
+- `client("foo").pull()` Get channel #foo
+
+Update and remove queries are performed via the `.save()` method:
+
+```js
+client("foo")
+  // get foos
+  .pull()
+  // change some foos
+  .map(function (foo) {
+    if ( foo.bar === 'barz' ) {
+      foo.barz = false;
+    }
+    
+    return foo;
+  })
+  // save changes
+  .push();
+```
+
 # Indexing
 
-Also there is **no indexing** and **no unique id keys**.
+There is **no indexing** and **no unique id keys**.
 
 # Install
 
@@ -68,7 +107,6 @@ These are the informations needed by a client to connect to a server:
 | Server | String | The server domain name or IP address | `"localhost"` |
 | Port | Number | The server port number | `7000` |
 | Database | String | The database name | `"test"` |
-| Collection | String | The collection name | `"test"` |
 
 You can overwrite the default values passing a list of the properties you want to modify to the client. If for example you want to switch collection:
 
