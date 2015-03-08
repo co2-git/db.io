@@ -34,11 +34,8 @@ client.toArray('players', function (error, players) {
 
 client
   .push('players', { 'name': 'Toni' },
-    function (error, player) {
-      
-      console.log(player);
-      
-      // { '_id': 1, 'name': 'Toni', '_created': Date }
+    function (error, player, position) {
+      //...
     }
   );
 
