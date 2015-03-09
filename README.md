@@ -93,3 +93,27 @@ client.pull('players',
   }
 );
 ```
+# Command Line
+
+We ship with a command line utility:
+
+```bash
+npm install -g db.io
+
+$ dbio push players '{"test":"foo"}'
+  server: dbio://localhost:7000
+  message: players pushed
+  data:
+    0: {"test":"foo"}
+
+$ dbio toArray players limit=10
+  server: dbio://localhost:7000
+  message: players toArray
+  length: 1
+  data:
+    0: {"test":"foo"}
+  
+$ dbio map players assert=it.should.have.property[test].which.is.exactly[foo]
+
+$ dbio pull players 0
+```
