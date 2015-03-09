@@ -22,76 +22,56 @@ npm install db.io
 ```js
 var dbio = require('db.io');
 
-var client = dbio.client();
+var players = dbio.client('players');
 
 // Get all players
 
-client.toArray('players', function (error, players) {
-  console.log(players);
-});
+players
+  .toArray()
+  .then(function (players) {});
 
 // Insert player
 
-client
-  .push('players', { 'name': 'Toni' },
-    function (error, player, position) {
-      //...
-    }
-  );
+players
+  .push({ 'name': 'Toni' })
+  .then(function (players) {});
 
 // Get last player which name is Toni
 
-client
-  .toArray('players',
-    
-    {
-      'limit':      1,
-      'reverse':    true,
-      'filter':     function (player) {
-        return player.name === 'Toni';
-      }
-    },
-    
-    function (error, players) {
-      //...
-    }
-  );
+players
+  .toArray()
+  .limit(1)
+  .reverse()
+  .filter(function (player) {
+    return player.name === 'Toni';
+  )
+  .then(function (players) {});;
   
 // Update player
 
-client
-  .map('players',
-  
-    {
-      'filter': function (player) {
-        return player.name === 'Toni';;
-      }
-    },
+players
+  .limit(1)
+  .reverse()
+  .filter(function (player) {
+    return player.name === 'Toni';
+  )
+  .map(function (player) {
+    player.score += 100;
     
-    function (player) {
-      player.score += 100;
-      return player;
-    },
-    
-    function (error, players) {
-      //...
-    }
-  );
+    return player;
+  })
+  .then(function (players) {});
 
 // Remove Toni if his score is below 1000
 
-client.pull('players',
-
-  {
-    'filter': function (player) {
-      return player.name === 'Toni' && player.score < 1000;
-    }
-  },
-  
-  function (error, players) {
-    //...
-  }
-);
+players
+  .limit(1)
+  .reverse()
+  .filter(function (player) {
+    return player.name === 'Toni' && score < 100;
+  )
+  .remove()
+  .then(function (players) {});
 ```
 # Command Line
 
