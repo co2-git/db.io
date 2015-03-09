@@ -112,8 +112,6 @@ $ dbio toArray players limit=10
   length: 1
   data:
     0: {"test":"foo"}
-  
-$ dbio map players assert=it.should.have.property[test].which.is.exactly[foo]
 
 $ dbio pull players 0
 ```
