@@ -1,75 +1,28 @@
 #!/usr/bin/env node
 
-/***
-
-
-            /  |                                               
-            ## |____    ______    ______          __   _______ 
-            ##      \  /      \  /      \        /  | /       |
-            #######  |/######  |/######  |       ##/ /#######/ 
-            ## |  ## |## |  ## |## |  ## |       /  |##      \ 
-            ## |__## |## \__## |## \__## |__     ## | ######  |
-            ##    ##/ ##    ##/ ##    ##//  |    ## |/     ##/ 
-            #######/   ######/   ######/ ##/__   ## |#######/  
-                                           /  \__## |          
-                                           ##    ##/           
-                                            ######/             
-                                    
-                                            
-                       .. ..oooo.....ooo...
-                    .odSS4PYYYSSOOXXXXXXXXXOodbgooo.
-                   /SSYod$$$$SSOIIPXXXXXXXXXYYP.oo.*b.
-                  ($$Yd$$$$SSSOII:XXXXXXXX:IIoSSS$$b.Y,
-                   \Yd$$$$SSSOII:XXXXXXXXXX:IIOOSSS$$$b\
-                    d$$$$SSSOOI:XP"YXXXXXXXX:IIOOSSSS$$$\
-                    Y$$$SSSOOII:XbdXXXXXP"YX:IIOOOSS$$$$)
-                    'Y$$$SSSOI:XXXXXXXXXbodX:IIOOSS$$$$$/
-                     "Y$$$SSSOI(PoTXXXXXTo)XXIIOOOSS$$$*'
-                       ""*Y$S(((PXXXXXXXY))dIIOSSS$$dP'
-                          "*'()P;XXXXXXXXY)IIOSSS$P".oS,
-                          (S'(P;XXXXXXXP;Y)XXYOP".oSSSSb
-                         (S'(P;'XXXXXXX';Y).ooooSSSSSSSS)
-                         (S'(P;'XXXXXXP';Y).oSSSSSSSSSSSP
-                         (SS'Y);YXXXXX';(Y.oSSSSSSSSSSSSP
-                          YSS'Y)'YXXX".(Y.oSSP.SSSSSSSSY
-                           YSS'"" XXX""oooSSP.SSSSSSSSY
-                           SSSSSS YXXX:SSSSP.SSSSSSSSY
-                           SSSSSP  YXb:SSSP.S"SSSSSSP
-                           S(OO)S   YXb:SY    )SSSSS
-                           SSSSO    )YXb.I    ISSSSP
-                           YSSSY    I."YXXb   Y(SS)I
-                           )SSS(    dSSo.""*b  YSSSY
-                           OooSb   dSSSSP      )SSS(
-                                   dSSSY       OooSS
-                                   OooSP
-
-
-***/
-
-(function () {
+! function binDbIo () {
   
   'use strict';
 
   require('colors');
 
-  var index = require('../');
+  var index     =   require('../');
 
-  var pkg = require('../package.json');
+  var pkg       =   require('../package.json');
 
-  var format = require('util').format;
-
-  var help = [format('boojs v%s', pkg.version)];
-
-  help.push(pkg.description.grey);
-
-  help.push('* Usage: boodb <channel> <message>'.magenta);
-
-  help.push('* Channels: start, poke, insert, find, update, remove, db, dbs, collection, collections'.magenta);
-
-  var action = process.argv[2];
+  var format    =   require('util').format;
 
   var client;
 
+  var domain = require('domain').create();
+  
+  domain.on('error', function (error) {
+    console.log('dbio error'.bgRed);
+    error.stack.split(/\n/).forEach(function (line) {
+      console.log(line.yellow);
+    });
+  });
+  
   function _time () {
     var d = new Date(),
       h = d.getHours(),
@@ -85,11 +38,106 @@
     ']').grey;
   }
 
+  /** =========================================================================
+      Help
+      ====================================================================== */
+
+  var help      =   [format('db.io v%s', pkg.version).bgBlue];
+
+  help.push(pkg.description.grey);
+
+  help.push('* Usage: dbio <action> <channel> <message>'.magenta);
+
+  help.push('* Actions: toArray, push, pull'.magenta);
+
+  var action = process.argv[2];
+
   switch ( action ) {
     default:
       help.forEach(function (line) {
         console.log('  ' + line);
       });
+      break;
+
+    /** =======================================================================
+        Action: toArray
+        ==================================================================== */
+
+    case 'toArray':
+
+      domain.run(function () {
+        console.log('  ', help[0]);
+
+        var channel = process.argv[3];
+
+        if ( ! channel ) {
+          throw new Error('Missing channel');
+        }
+
+        var client = index.client(channel);
+
+        client
+
+          .on('error', function (error) {
+            throw error;
+          })
+
+          .on('message', function (message) {
+            console.log('   message'.magenta, JSON.stringify(message, null, 2).grey);
+          })
+
+          .on('connected', function () {
+            console.log('  ', 'connected'.bgGreen);
+            console.log('    ', 'server   ', client.address.server.blue);
+            console.log('    ', 'port     ', client.address.port.toString().blue);
+            console.log('    ', 'channel  ', client.address.channel.blue);
+          })
+
+          .toArray()
+          
+          .then(
+            function (response) {
+              console.log(JSON.stringify(response, null, 2));
+            },
+
+            function (error) {
+              console.log(error.stack);
+            });
+      });
+
+      break;
+
+    case 'push':
+
+      var channel = process.argv[3];
+
+      if ( ! channel ) {
+        throw new Error('Missing channel');
+      }
+
+      var insert = process.argv[4] || null;
+
+      insert = JSON.parse(insert);
+
+      var client = index.client(channel);
+
+      client
+        .on('error', function (error) {
+          console.log('error', error.stack);
+        })
+        .on('connected', function () {
+          console.log('connected', client.address);
+        })
+        .push(insert)
+        .then(
+          function (players) {
+            console.log(players);
+          },
+
+          function (error) {
+            console.log(error.stack);
+          });
+
       break;
 
     case 'start':
@@ -385,4 +433,4 @@
       break;
   }
 
-}) ();
+} ();

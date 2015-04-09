@@ -1,6 +1,6 @@
 {
   "name": "db.io",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "db.io is a database written in JavaScript with the following features: - memory database - tcp socket server - event-driven (all clients get notified in real time of any watched events)",
   "main": "index.js",
   "dependencies": {
@@ -29,7 +29,9 @@
     "ram",
     "memory",
     "event",
-    "socket"
+    "socket",
+    "tcp",
+    "cache"
   ],
   "author": "co2-git",
   "license": "BSD-2-Clause",
